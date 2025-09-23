@@ -1,0 +1,20 @@
+# Visual Studio / VSCode
+.vs/
+*.VC.db
+*.VC.opendb
+*.user
+*.suo
+
+# CMake build dirs
+/build/
+CMakeSettings.json
+CMakeCache.txt
+CMakeFiles/
+cmake-build-*/
+
+# vcpkg installed tree
+vcpkg_installed/
+
+# Outputs
+/out/
+*.log
