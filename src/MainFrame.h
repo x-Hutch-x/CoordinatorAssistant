@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <wx/wx.h>
 #include <wx/notebook.h>
 
@@ -17,11 +17,16 @@ private:
     void OnLoadVendors(wxCommandEvent& event);
     void OnExportUpdated(wxCommandEvent& event);
 
+    //Countdown
+    void OnUpdateCountdown(wxTimerEvent& event);
+    void UpdateCountdownLabel();
+
     //UI Pointers
     wxPanel* root_ = nullptr;
     wxPanel* topBar_ = nullptr;
     wxNotebook* notebook_ = nullptr;
-
+    wxStaticText* countdownLabel_ = nullptr;
+    wxTimer* countdownTimer_ = nullptr;
     wxDECLARE_EVENT_TABLE();
 
 };

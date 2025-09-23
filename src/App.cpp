@@ -1,4 +1,4 @@
-#include "App.h"
+﻿#include "App.h"
 #include "MainFrame.h"
 
 wxIMPLEMENT_APP(CoordinatorApp);

@@ -1,4 +1,4 @@
-#include "MainFrame.h"
+﻿#include "MainFrame.h"
 #include "core/Actions.h"
 
 
@@ -6,6 +6,7 @@
 wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
     EVT_MENU(wxID_EXIT, MainFrame::OnExit)
     EVT_MENU(wxID_ABOUT, MainFrame::OnAbout)
+    EVT_TIMER(wxID_ANY, MainFrame::OnUpdateCountdown)
 
     EVT_BUTTON(ID_LOAD_RECORDINGS, MainFrame::OnLoadRecordings)
     EVT_BUTTON(ID_LOAD_VENDORS, MainFrame::OnLoadVendors)
@@ -43,9 +44,20 @@ MainFrame::MainFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title, 
     auto* btnLoadVen = new wxButton(topBar_, ID_LOAD_VENDORS, "Load Vendor List");
     auto btnExport = new wxButton(topBar_, ID_EXPORT_UPDATED, "Export Updated File");
 
+    // Add stretch so label sits at right side
+    topBarSizer->AddStretchSpacer();
+
+    //countdown label
+    countdownLabel_ = new wxStaticText(topBar_, wxID_ANY, "Loading timer...");
+    topBarSizer->Add(countdownLabel_, 0, wxALIGN_CENTER_VERTICAL | wxALL, 6);
+
+    //Start timer (fires every 60s = 60000 ms)
+    countdownTimer_ = new wxTimer(this);
+    countdownTimer_->Start(1000);
+    UpdateCountdownLabel();
+
     topBarSizer->Add(btnLoadRec, 0, wxALL, 6);
     topBarSizer->Add(btnLoadVen, 0, wxALL, 6);
-    topBarSizer->AddStretchSpacer();
     topBarSizer->Add(btnExport, 0, wxALL, 6);
     topBar_->SetSizer(topBarSizer);
 
@@ -86,11 +98,39 @@ void MainFrame::OnLoadRecordings(wxCommandEvent& WXUNUSED(event))
 void MainFrame::OnLoadVendors(wxCommandEvent& WXUNUSED(event))
 {
     wxLogMessage("Load Vendor List clicked");
-    SetStatusText("Load Vendor List clicke");
+    SetStatusText("Load Vendor List clicked");
 }
 
 void MainFrame::OnExportUpdated(wxCommandEvent& WXUNUSED(event))
 {
     wxLogMessage("Export Updated File clicked");
     SetStatusText("Export Updated File clicked");
+}
+
+void MainFrame::OnUpdateCountdown(wxTimerEvent& WXUNUSED(event))
+{
+    UpdateCountdownLabel();
+}
+
+void MainFrame::UpdateCountdownLabel()
+{
+    //Target line: 3PM EST (12 PT)
+    wxDateTime now = wxDateTime::Now();
+
+    //assume 3PM ET = 12PM PT -> just set noon PT
+    wxDateTime noonPT(now.GetDay(), now.GetMonth(), now.GetYear(), 12, 0, 0);
+
+
+    wxTimeSpan remaining = noonPT - now;
+
+    wxString label;
+
+    if (remaining.IsPositive())
+    {
+        label.Printf("Time remaining: %ldh %ldm to 3:00 PM ET", remaining.GetHours(), remaining.GetMinutes() % 60);
+    }
+    else
+        label = "Deadline passed";
+
+    countdownLabel_->SetLabel(label);
 }
