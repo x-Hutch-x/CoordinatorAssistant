@@ -3,10 +3,10 @@
 **Coordinator Assistant** is a lightweight desktop tool built with **C++17** and **wxWidgets**.  
 It helps streamline coordination workflows by making repetitive file-based tasks easier to manage.
 
-## Features
+## Features (Planned & In Progress)
 - 📂 **File intake** — load daily CSV/Excel files into the app.  
-- 🗂 **Tabbed views** — separate panels for different task lists (e.g. vendors, recordings, outputs).  
-- ⏱ **Deadline countdown** — visible timer to critical daily cutoffs.  
+- 🗂 **Tabbed views** — separate panels for vendors, recordings, and exported outputs.  
+- ⏱ **Deadline countdown** — visible timer that tracks critical daily cutoffs.  
 - 📝 **Quick updates** — add statuses, notes, or tags directly into the interface.  
 - 📧 **Email helper** — generate common email templates with merged order details.  
 - 📤 **One-click reporting** — export updated files while preserving original formats.  
@@ -14,21 +14,30 @@ It helps streamline coordination workflows by making repetitive file-based tasks
 ## Tech Stack
 - **Language:** C++17  
 - **Framework:** wxWidgets (UI + event handling)  
-- **Build System:** CMake (using vcpkg for dependency management)  
+- **Build System:** CMake (vcpkg dependency management)  
 - **Target:** Windows 10/11 desktop  
 
-## Status
-- ✅ Foundation complete: main window, menus, event table wiring.  
-- 🚧 In progress: top-bar actions, workflow tabs, CSV integration, email helper.  
-- 📌 Planned: metrics dashboard, refined UX, and advanced reporting tools.  
+## Current Status
+- ✅ **UI foundation built**  
+  - Project structure set up with CMake + vcpkg.  
+  - Main window loads with working menus and action IDs.  
+  - Event table wiring in place for future actions.  
+- 🚧 **Active development**  
+  - Adding tabbed workflow panels.  
+  - Preparing CSV parsing and vendor/recordings data integration.  
+- 📌 **Planned**  
+  - Deadline countdown timer.  
+  - Metrics dashboard.  
+  - Refined UX and advanced reporting tools.  
 
 ## Why This Project
-This project demonstrates:
+This project demonstrates:  
 - Practical **desktop GUI development** in modern C++.  
-- Using **wxWidgets** with event tables for clear, maintainable UI code.  
-- Organizing builds with **CMake** and **vcpkg**.  
-- Designing real-world workflow automation in a modular, extensible way.  
+- Clear **event-driven UI design** with wxWidgets.  
+- Modular builds using **CMake + vcpkg**.  
+- How to take a **real-world workflow problem** and build a clean, extensible solution.  
 
 ---
 
 🔗 This repository is public and generic to showcase software design skills.  
+  
