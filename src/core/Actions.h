@@ -1,0 +1,8 @@
+#pragma once 
+
+enum 
+{
+	ID_LOAD_RECORDINGS = 1000,
+	ID_LOAD_VENDORS,
+	ID_EXPORT_UPDATED
+};
