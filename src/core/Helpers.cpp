@@ -119,4 +119,30 @@ namespace Helpers
 		return parsedCells;
 	}
 
+	wxString PromptExtraNotes(wxWindow* parent, const wxString& title, const wxString& placeholder, const wxString& prefill)
+	{
+		wxDialog dlg(parent, wxID_ANY, title, wxDefaultPosition, wxSize(480, 280),
+			wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+
+		auto* vbox = new wxBoxSizer(wxVERTICAL);
+		auto* lbl = new wxStaticText(&dlg, wxID_ANY, placeholder);
+		auto* txt = new wxTextCtrl(&dlg, wxID_ANY, prefill,
+			wxDefaultPosition, wxDefaultSize,
+			wxTE_MULTILINE | wxTE_RICH2);
+
+		auto* btns = dlg.CreateSeparatedButtonSizer(wxOK | wxCANCEL);
+
+		vbox->Add(lbl, 0, wxALL, 8);
+		vbox->Add(txt, 1, wxEXPAND | wxLEFT | wxRIGHT, 8);
+		vbox->Add(btns, 0, wxEXPAND | wxALL, 8);
+		dlg.SetSizerAndFit(vbox);
+
+		if (dlg.ShowModal() == wxID_OK) {
+			return txt->GetValue().Trim(true).Trim(false);
+		}
+
+
+		return wxEmptyString;
+	}
+
 }

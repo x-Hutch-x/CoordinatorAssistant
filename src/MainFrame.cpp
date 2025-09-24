@@ -356,13 +356,16 @@ void MainFrame::OnRecordingsCellChanged(wxDataViewEvent& event)
         recordingRows_[csvRow].resize(csvCol + 1);
     recordingRows_[csvRow][csvCol] = newText;
 
+    /*
     // --- Auto-fill default comment when Keyword changes and Comments is empty ---
     if (csvCol == recordingsKeywordCol_ && recordingsCommentsCol_ >= 0) {
         wxString currentComments;
         if (recordingsCommentsCol_ < (int)recordingRows_[csvRow].size())
             currentComments = recordingRows_[csvRow][recordingsCommentsCol_];
 
-        //if (currentComments.IsEmpty()) {
+        //if (currentComments.IsEmpty()) { <- makes default comments only avail when textbox is empty
+
+
             const wxString defaultText = Defaults::DefaultCommentFor(newText);
             if (!defaultText.IsEmpty()) {
                 if (recordingsCommentsCol_ >= (int)recordingRows_[csvRow].size())
@@ -378,6 +381,59 @@ void MainFrame::OnRecordingsCellChanged(wxDataViewEvent& event)
                     recordingsTable_->SetValue(wxVariant(defaultText), viewRow, modelCommentsCol);
                 }
             }
-        //}
+
+
+        //} <- makes default comments only avail when textbox is empty
     }
+    */
+
+
+    if (csvCol == recordingsKeywordCol_ && recordingsCommentsCol_ >= 0) {
+        const wxString defaultText = Defaults::DefaultCommentFor(newText);
+
+        // Pull any existing "extra" portion (after separator) so we preserve it
+        wxString existingExtra;
+        if (recordingsCommentsCol_ < (int)recordingRows_[csvRow].size()) {
+            const wxString existing = recordingRows_[csvRow][recordingsCommentsCol_];
+            const int at = existing.Find(Helpers::kNotesSeparator);
+            if (at != wxNOT_FOUND) {
+                existingExtra = existing.Mid(at + Helpers::kNotesSeparator.length());
+            }
+        }
+
+        // Ask the user for new extra notes (optional). Prefill with previous extra if any.
+        wxString newExtra = Helpers::PromptExtraNotes(this,
+            wxS("Add notes for ") + newText,
+            wxS("Optional: add any extra details here…"),
+            existingExtra);
+
+        // Build final comment: default + (optional) separator + extra
+        wxString finalComment = defaultText;
+        if (!newExtra.IsEmpty()) {
+            if (!finalComment.EndsWith("\n")) finalComment += wxS("\n");
+            finalComment += Helpers::kNotesSeparator;
+            finalComment += newExtra;
+        }
+        else if (!existingExtra.IsEmpty()) {
+            // keep previous extra even if user didn't add new text this time
+            if (!finalComment.EndsWith("\n")) finalComment += wxS("\n");
+            finalComment += Helpers::kNotesSeparator;
+            finalComment += existingExtra;
+        }
+
+        // Ensure row size and write back to model
+        if (recordingsCommentsCol_ >= (int)recordingRows_[csvRow].size())
+            recordingRows_[csvRow].resize(recordingsCommentsCol_ + 1);
+        recordingRows_[csvRow][recordingsCommentsCol_] = finalComment;
+
+        // Reflect in UI (convert CSV comments col -> model col)
+        int modelCommentsCol = -1;
+        for (int m = 0; m < (int)recordingsModelToCsvCol_.size(); ++m) {
+            if (recordingsModelToCsvCol_[m] == recordingsCommentsCol_) { modelCommentsCol = m; break; }
+        }
+        if (modelCommentsCol >= 0) {
+            recordingsTable_->SetValue(wxVariant(finalComment), viewRow, modelCommentsCol);
+        }
+    }
+
 }
