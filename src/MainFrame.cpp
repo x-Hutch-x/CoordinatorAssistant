@@ -362,7 +362,7 @@ void MainFrame::OnRecordingsCellChanged(wxDataViewEvent& event)
         if (recordingsCommentsCol_ < (int)recordingRows_[csvRow].size())
             currentComments = recordingRows_[csvRow][recordingsCommentsCol_];
 
-        if (currentComments.IsEmpty()) {
+        //if (currentComments.IsEmpty()) {
             const wxString defaultText = Defaults::DefaultCommentFor(newText);
             if (!defaultText.IsEmpty()) {
                 if (recordingsCommentsCol_ >= (int)recordingRows_[csvRow].size())
@@ -378,6 +378,6 @@ void MainFrame::OnRecordingsCellChanged(wxDataViewEvent& event)
                     recordingsTable_->SetValue(wxVariant(defaultText), viewRow, modelCommentsCol);
                 }
             }
-        }
+        //}
     }
 }
