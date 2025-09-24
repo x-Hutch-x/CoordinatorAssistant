@@ -193,7 +193,12 @@ void MainFrame::UpdateCountdownLabel()
         label.Printf("Time remaining: %ldh %ldm to 3:00 PM ET", remaining.GetHours(), remaining.GetMinutes() % 60);
     }
     else
-        label = "Deadline passed";
+    {
+        wxDateTime nowET = now;
+        nowET += wxTimeSpan::Hours(3); //PT -> ET adjustment
+
+        label.Printf("Local time: %s |  ET: %s", now.Format("%I:%M %p"), nowET.Format("%I:%M %p"));
+    }
 
     countdownLabel_->SetLabel(label);
 }
