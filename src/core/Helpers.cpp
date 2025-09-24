@@ -1,5 +1,5 @@
 #include "Helpers.h"
-#include <wx/textfile.h>
+
 
 namespace Helpers
 {
@@ -15,25 +15,50 @@ namespace Helpers
 	std::vector<std::vector<wxString>> LoadCsv(const wxString& filePath, size_t maxRows)
 	{
 		std::vector<std::vector<wxString>> allRows;
-		wxTextFile inputFile;
+		wxFileInputStream fileStream(filePath);
 
-		if (!inputFile.IsOpened()) return allRows;
+		if (!fileStream.IsOk())
+		{
+			wxLogError("Could not open CSV file: %s", filePath);
+			return allRows;
+		}
 
+		wxTextInputStream textStream(fileStream, "\n", wxConvUTF8);
 		
 		size_t rowCount = 0;
+		bool firstLine = true;
 
-		for (size_t index = 0; index < inputFile.GetLineCount(); ++index)
+		while (fileStream.IsOk() && !fileStream.Eof())
 		{
-			wxString lineBuffer = inputFile.GetLine(index);
+			wxString lineBuffer = textStream.ReadLine();
 			lineBuffer.Trim(true).Trim(false);
 
+			if (lineBuffer.empty()) continue;
+
+			if (firstLine && !lineBuffer.empty() && lineBuffer[0] == 0xFEFF)
+			{
+				lineBuffer = lineBuffer.Mid(1);
+			}
+
+			firstLine = false;
 			allRows.push_back(SplitCsvLine(lineBuffer));
 
 			if (maxRows && ++rowCount >= maxRows)
 			{
 				break;
 			}
+
 		}
+
+		if (allRows.empty())
+		{
+			wxLogWarning("CSV parsed zero rows: %s", filePath);
+		}
+		else
+		{
+			wxLogMessage("CSV loaded: %zu rows from %s", allRows.size(), filePath);
+		}
+
 		return allRows;
 	}
 
@@ -45,7 +70,6 @@ namespace Helpers
 	{
 		std::vector<wxString> parsedCells;
 		wxString currentCell;
-
 		bool insideQuotes = false;
 		wxChar activeQuoteChar = 0;
 
@@ -81,7 +105,7 @@ namespace Helpers
 				}
 				else if (IsQuoteCharacter(currentChar))
 				{
-					insideQuotes = false;
+					insideQuotes = true;
 					activeQuoteChar = currentChar;
 				}
 				else

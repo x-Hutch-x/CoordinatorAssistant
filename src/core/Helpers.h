@@ -1,6 +1,8 @@
 #pragma once
 #include <wx/wx.h>
 #include <vector>
+#include <wx/wfstream.h>
+#include <wx/txtstrm.h>
 
 namespace Helpers
 {
