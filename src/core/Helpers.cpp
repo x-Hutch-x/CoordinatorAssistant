@@ -1,11 +1,40 @@
 #include "Helpers.h"
-#include <wx/ffile.h>
+#include <wx/textfile.h>
 
 namespace Helpers
 {
 	static bool IsQuoteCharacter(wxChar character)
 	{
 		return character == '"' || character == '\'';
+	}
+
+
+
+
+
+	std::vector<std::vector<wxString>> LoadCsv(const wxString& filePath, size_t maxRows)
+	{
+		std::vector<std::vector<wxString>> allRows;
+		wxTextFile inputFile;
+
+		if (!inputFile.IsOpened()) return allRows;
+
+		
+		size_t rowCount = 0;
+
+		for (size_t index = 0; index < inputFile.GetLineCount(); ++index)
+		{
+			wxString lineBuffer = inputFile.GetLine(index);
+			lineBuffer.Trim(true).Trim(false);
+
+			allRows.push_back(SplitCsvLine(lineBuffer));
+
+			if (maxRows && ++rowCount >= maxRows)
+			{
+				break;
+			}
+		}
+		return allRows;
 	}
 
 
