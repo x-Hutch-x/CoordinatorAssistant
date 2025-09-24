@@ -4,6 +4,7 @@
 #include <wx/dataview.h> 
 #include "core/Actions.h"
 #include "core/Helpers.h"
+#include "core/Defaults.h"
 
 class MainFrame : public wxFrame 
 {
@@ -37,8 +38,22 @@ private:
     wxDataViewListCtrl* recordingsTable_ = nullptr;
     wxDataViewListCtrl* vendorsTable_ = nullptr;
 
+    // store recordings CSV in memory so edits can be exported
+    std::vector<std::vector<wxString>> recordingRows_;
+    int recordingsKeywordCol_ = -1;
+    int recordingsCommentsCol_ = -1;
+
+    //model/view col index -> CSV col index
+    std::vector<int> recordingsModelToCsvCol_;
+
     // Helper to fill a table from parsed CSV
     void PopulateTable(wxDataViewListCtrl* table, const std::vector<std::vector<wxString>>& rows);
+
+    // Build table using CSV header but give special editors to Keyword/Comments
+    void BuildRecordingsTableWithEditors();
+
+    // React to cell edits (auto-fill comments, write back to recordingsRows_)
+    void OnRecordingsCellChanged(wxDataViewEvent& event);
 
     wxDECLARE_EVENT_TABLE();
 };

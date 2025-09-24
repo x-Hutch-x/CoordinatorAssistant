@@ -9,6 +9,7 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
     EVT_BUTTON(ID_LOAD_RECORDINGS, MainFrame::OnLoadRecordings)
     EVT_BUTTON(ID_LOAD_VENDORS, MainFrame::OnLoadVendors)
     EVT_BUTTON(ID_EXPORT_UPDATED, MainFrame::OnExportUpdated)
+    EVT_DATAVIEW_ITEM_VALUE_CHANGED(wxID_ANY, MainFrame::OnRecordingsCellChanged)
 wxEND_EVENT_TABLE()
 
 
@@ -116,19 +117,25 @@ void MainFrame::OnLoadRecordings(wxCommandEvent& WXUNUSED(event))
     }
 
     const wxString selectedPath = openDialog.GetPath();
-    auto parsedRows = Helpers::LoadCsv(selectedPath, 200);
+    auto parsedRows = Helpers::LoadCsv(selectedPath, 0);
 
 
     if (parsedRows.empty())
     {
         wxLogWarning("No data found in file: %s", selectedPath);
-        SetStatusText("Failed to load: no rows found");
+        SetStatusText("Failed to load recordings.");
         return;
     }
 
-    PopulateTable(recordingsTable_, parsedRows);
+    //PopulateTable(recordingsTable_, parsedRows);
+    //notebook_->ChangeSelection(0);
+    //SetStatusText("Loaded recordings Preview");
+    recordingRows_ = std::move(parsedRows);
+    wxLogMessage("Header columns: %zu | first col '%s'", recordingRows_[0].size(), recordingRows_[0].empty() ? "<none>" : recordingRows_[0][0]);
+    BuildRecordingsTableWithEditors();
+
     notebook_->ChangeSelection(0);
-    SetStatusText("Loaded recordings Preview");
+    SetStatusText("Loaded Recordings");
 }
 
 void MainFrame::OnLoadVendors(wxCommandEvent& WXUNUSED(event))
@@ -243,4 +250,134 @@ void MainFrame::PopulateTable(wxDataViewListCtrl* table, const std::vector<std::
     table->Layout();
     table->GetParent()->Layout();
     Layout();
+}
+
+void MainFrame::BuildRecordingsTableWithEditors()
+{
+    if (!recordingsTable_ || recordingRows_.empty()) return;
+
+    // Find CSV indices for special columns
+    recordingsKeywordCol_ = -1;
+    recordingsCommentsCol_ = -1;
+
+    const auto& header = recordingRows_[0];
+    for (size_t csvCol = 0; csvCol < header.size(); ++csvCol) {
+        if (header[csvCol].CmpNoCase("Keyword") == 0) recordingsKeywordCol_ = static_cast<int>(csvCol);
+        if (header[csvCol].CmpNoCase("Comments") == 0) recordingsCommentsCol_ = static_cast<int>(csvCol);
+    }
+
+    recordingsTable_->Freeze();
+    recordingsTable_->DeleteAllItems();
+    recordingsTable_->ClearColumns();
+
+    recordingsModelToCsvCol_.clear();
+    recordingsModelToCsvCol_.reserve(header.size());
+
+    // ----- COLUMNS -----
+    for (size_t csvCol = 0; csvCol < header.size(); ++csvCol) {
+        const wxString colName = header[csvCol].IsEmpty()
+            ? wxString::Format("Column %zu", csvCol + 1)
+            : header[csvCol];
+
+        // Model column index is sequential as we append
+        const unsigned int modelCol = recordingsTable_->GetColumnCount();
+        recordingsModelToCsvCol_.push_back(static_cast<int>(csvCol));
+
+        if ((int)csvCol == recordingsKeywordCol_) {
+            const wxArrayString& choices = Defaults::KeywordChoices();
+            auto* renderer = new wxDataViewChoiceRenderer(choices, wxDATAVIEW_CELL_EDITABLE, wxALIGN_LEFT);
+            auto* column = new wxDataViewColumn(colName, renderer, modelCol,
+                wxCOL_WIDTH_AUTOSIZE, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
+            recordingsTable_->AppendColumn(column);
+        }
+        else if ((int)csvCol == recordingsCommentsCol_) {
+            // Make comments editable
+            recordingsTable_->AppendTextColumn(colName, wxDATAVIEW_CELL_EDITABLE,
+                wxCOL_WIDTH_AUTOSIZE, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
+        }
+        else {
+            // <-- MISSING BEFORE: append all the other columns (read-only)
+            recordingsTable_->AppendTextColumn(colName, wxDATAVIEW_CELL_INERT,
+                wxCOL_WIDTH_AUTOSIZE, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
+        }
+    }
+
+    // ----- ROWS -----
+    for (size_t csvRow = 1; csvRow < recordingRows_.size(); ++csvRow) {
+        const auto& source = recordingRows_[csvRow];
+
+        wxVector<wxVariant> row;
+        row.reserve(recordingsModelToCsvCol_.size());
+
+        for (unsigned int modelCol = 0; modelCol < recordingsModelToCsvCol_.size(); ++modelCol) {
+            const int csvCol = recordingsModelToCsvCol_[modelCol];
+            const wxString val = (csvCol >= 0 && csvCol < (int)source.size()) ? source[csvCol] : wxString();
+            row.push_back(wxVariant(val));
+        }
+        recordingsTable_->AppendItem(row);
+    }
+
+    // Auto-size for visibility
+    for (unsigned int i = 0; i < recordingsTable_->GetColumnCount(); ++i) {
+        if (auto* col = recordingsTable_->GetColumn(i)) col->SetWidth(wxCOL_WIDTH_AUTOSIZE);
+    }
+
+    recordingsTable_->Thaw();
+}
+
+void MainFrame::OnRecordingsCellChanged(wxDataViewEvent& event)
+{
+    // Only handle edits from the recordings table
+    if (event.GetEventObject() != recordingsTable_) return;
+    if (recordingRows_.empty()) return;
+
+    wxDataViewItem item = event.GetItem();
+    if (!item.IsOk()) return;
+
+    const int viewRow = recordingsTable_->ItemToRow(item);
+    const int modelCol = event.GetColumn();
+    if (viewRow < 0 || modelCol < 0) return;
+
+    // --- map view/model column -> CSV column ---
+    if (modelCol >= (int)recordingsModelToCsvCol_.size()) return;
+    const int csvCol = recordingsModelToCsvCol_[modelCol];
+
+    // CSV row index (skip header row 0)
+    const size_t csvRow = static_cast<size_t>(viewRow + 1);
+    if (csvRow >= recordingRows_.size()) return;
+
+    // Read new value from UI
+    wxVariant newValue;
+    recordingsTable_->GetValue(newValue, viewRow, modelCol);
+    const wxString newText = newValue.GetString();
+
+    // Ensure row is large enough, then write back to the CSV model
+    if (csvCol >= (int)recordingRows_[csvRow].size())
+        recordingRows_[csvRow].resize(csvCol + 1);
+    recordingRows_[csvRow][csvCol] = newText;
+
+    // --- Auto-fill default comment when Keyword changes and Comments is empty ---
+    if (csvCol == recordingsKeywordCol_ && recordingsCommentsCol_ >= 0) {
+        wxString currentComments;
+        if (recordingsCommentsCol_ < (int)recordingRows_[csvRow].size())
+            currentComments = recordingRows_[csvRow][recordingsCommentsCol_];
+
+        if (currentComments.IsEmpty()) {
+            const wxString defaultText = Defaults::DefaultCommentFor(newText);
+            if (!defaultText.IsEmpty()) {
+                if (recordingsCommentsCol_ >= (int)recordingRows_[csvRow].size())
+                    recordingRows_[csvRow].resize(recordingsCommentsCol_ + 1);
+                recordingRows_[csvRow][recordingsCommentsCol_] = defaultText;
+
+                // find the model column that maps to the CSV comments column
+                int modelCommentsCol = -1;
+                for (int m = 0; m < (int)recordingsModelToCsvCol_.size(); ++m) {
+                    if (recordingsModelToCsvCol_[m] == recordingsCommentsCol_) { modelCommentsCol = m; break; }
+                }
+                if (modelCommentsCol >= 0) {
+                    recordingsTable_->SetValue(wxVariant(defaultText), viewRow, modelCommentsCol);
+                }
+            }
+        }
+    }
 }
