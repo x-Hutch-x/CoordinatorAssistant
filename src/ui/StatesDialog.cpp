@@ -9,10 +9,12 @@ wxEND_EVENT_TABLE()
 
 StatesDialog::StatesDialog(wxWindow* parent)
     : wxDialog(parent, wxID_ANY, "State Abbreviations",
-        wxDefaultPosition, wxSize(420, 520),
+        wxDefaultPosition, wxSize(500, 500),
         wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     auto* vbox = new wxBoxSizer(wxVERTICAL);
+    
+
 
     searchBox_ = new wxTextCtrl(this, ID_STATES_SEARCHBOX, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
 

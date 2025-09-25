@@ -3,13 +3,14 @@
 **Coordinator Assistant** is a lightweight desktop tool built with **C++17** and **wxWidgets**.  
 It helps streamline coordination workflows by making repetitive file-based tasks easier to manage.
 
-## Features (Planned & In Progress)
-- 📂 **File intake** — load daily CSV/Excel files into the app.  
-- 🗂 **Tabbed views** — separate panels for vendors, recordings, and exported outputs.  
-- ⏱ **Deadline countdown** — visible timer that tracks critical daily cutoffs.  
-- 📝 **Quick updates** — add statuses, notes, or tags directly into the interface.  
-- 📧 **Email helper** — generate common email templates with merged order details.  
-- 📤 **One-click reporting** — export updated files while preserving original formats.  
+## Features
+- 📂 **File intake** — load daily CSV/Excel files into the app. *(in progress)*  
+- 🗂 **Tabbed views** — separate panels for vendors, recordings, and exported outputs. *(in progress)*  
+- 🗒️ **State abbreviations cheat sheet** — searchable dialog of all U.S. states + abbreviations. ✅  
+- ⏱ **Deadline countdown** — visible timer that tracks critical daily cutoffs. *(planned)*  
+- 📝 **Quick updates** — add statuses, notes, or tags directly into the interface. *(planned)*  
+- 📧 **Email helper** — generate common email templates with merged order details. *(planned)*  
+- 📤 **One-click reporting** — export updated files while preserving original formats. *(planned)*  
 
 ## Tech Stack
 - **Language:** C++17  
@@ -22,6 +23,8 @@ It helps streamline coordination workflows by making repetitive file-based tasks
   - Project structure set up with CMake + vcpkg.  
   - Main window loads with working menus and action IDs.  
   - Event table wiring in place for future actions.  
+- ✅ **First utility complete**  
+  - State Abbreviations dialog with live search + filtering.  
 - 🚧 **Active development**  
   - Adding tabbed workflow panels.  
   - Preparing CSV parsing and vendor/recordings data integration.  
@@ -40,4 +43,3 @@ This project demonstrates:
 ---
 
 🔗 This repository is public and generic to showcase software design skills.  
-  

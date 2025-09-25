@@ -371,37 +371,6 @@ void MainFrame::OnRecordingsCellChanged(wxDataViewEvent& event)
         recordingRows_[csvRow].resize(csvCol + 1);
     recordingRows_[csvRow][csvCol] = newText;
 
-    /*
-    // --- Auto-fill default comment when Keyword changes and Comments is empty ---
-    if (csvCol == recordingsKeywordCol_ && recordingsCommentsCol_ >= 0) {
-        wxString currentComments;
-        if (recordingsCommentsCol_ < (int)recordingRows_[csvRow].size())
-            currentComments = recordingRows_[csvRow][recordingsCommentsCol_];
-
-        //if (currentComments.IsEmpty()) { <- makes default comments only avail when textbox is empty
-
-
-            const wxString defaultText = Defaults::DefaultCommentFor(newText);
-            if (!defaultText.IsEmpty()) {
-                if (recordingsCommentsCol_ >= (int)recordingRows_[csvRow].size())
-                    recordingRows_[csvRow].resize(recordingsCommentsCol_ + 1);
-                recordingRows_[csvRow][recordingsCommentsCol_] = defaultText;
-
-                // find the model column that maps to the CSV comments column
-                int modelCommentsCol = -1;
-                for (int m = 0; m < (int)recordingsModelToCsvCol_.size(); ++m) {
-                    if (recordingsModelToCsvCol_[m] == recordingsCommentsCol_) { modelCommentsCol = m; break; }
-                }
-                if (modelCommentsCol >= 0) {
-                    recordingsTable_->SetValue(wxVariant(defaultText), viewRow, modelCommentsCol);
-                }
-            }
-
-
-        //} <- makes default comments only avail when textbox is empty
-    }
-    */
-
 
     if (csvCol == recordingsKeywordCol_ && recordingsCommentsCol_ >= 0) {
         const wxString defaultText = Defaults::DefaultCommentFor(newText);
@@ -455,50 +424,6 @@ void MainFrame::OnRecordingsCellChanged(wxDataViewEvent& event)
 
 void MainFrame::OnShowStatesCheatSheet(wxCommandEvent& WXUNUSED(event))
 {
-    /*
-    wxDialog dialog(this, wxID_ANY, "State Abbreviations", wxDefaultPosition, wxSize(420, 520), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
-
-    auto* vbox = new wxBoxSizer(wxVERTICAL);
-    auto* searchBox = new wxTextCtrl(&dialog, wxID_ANY, "", wxDefaultPosition, wxDefaultSize,
-        wxTE_PROCESS_ENTER); // enter triggers too
-    auto* list = new wxDataViewListCtrl(&dialog, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-        wxDV_ROW_LINES | wxDV_VERT_RULES);
-
-    list->AppendTextColumn("State", wxDATAVIEW_CELL_INERT, 260, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
-    list->AppendTextColumn("Abbr", wxDATAVIEW_CELL_INERT, 80, wxALIGN_CENTER, wxDATAVIEW_COL_RESIZABLE);
-
-    // filter + populate
-    auto populate = [list](const wxString& needle)
-        {
-            list->DeleteAllItems();
-            const wxString lo = needle.Lower();
-
-            for (const auto& e : kStates) {
-                const wxString name = wxString::FromUTF8(e.name);
-                const wxString abbr = wxString::FromUTF8(e.abbr);
-                if (lo.IsEmpty() || name.Lower().Contains(lo) || abbr.Lower().Contains(lo)) {
-                    wxVector<wxVariant> row;
-                    row.push_back(wxVariant(name));
-                    row.push_back(wxVariant(abbr));
-                    list->AppendItem(row);
-                }
-            }
-        };
-
-    populate(""); // initial
-
-    // live filter on typing and Enter
-    searchBox->Bind(wxEVT_TEXT, [populate](wxCommandEvent& ev) { populate(ev.GetString()); });
-    searchBox->Bind(wxEVT_TEXT_ENTER, [populate](wxCommandEvent& ev) { populate(ev.GetString()); });
-
-    vbox->Add(searchBox, 0, wxEXPAND | wxALL, 8);
-    vbox->Add(list, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 8);
-    vbox->Add(dialog.CreateSeparatedButtonSizer(wxOK), 0, wxEXPAND | wxALL, 8);
-    dialog.SetSizerAndFit(vbox);
-
-    dialog.ShowModal();
-    */
-
     StatesDialog dialog(this);
     dialog.ShowModal();
 }
