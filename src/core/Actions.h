@@ -1,8 +1,11 @@
-#pragma once 
+﻿#pragma once 
+#include <wx/defs.h>
 
-enum 
+enum
 {
 	ID_LOAD_RECORDINGS = 1000,
 	ID_LOAD_VENDORS,
-	ID_EXPORT_UPDATED
+	ID_EXPORT_UPDATED,
+	ID_HELP_STATES = wxID_HIGHEST + 200,
+	ID_STATES_SEARCHBOX = wxID_HIGHEST + 201
 };
