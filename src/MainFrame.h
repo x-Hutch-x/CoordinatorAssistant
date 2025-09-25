@@ -5,6 +5,14 @@
 #include "core/Actions.h"
 #include "core/Helpers.h"
 #include "core/Defaults.h"
+#include "core/States.h"
+#include <wx/textctrl.h>
+#include "ui/StatesDialog.h"
+#include <wx/ffile.h>
+#include <wx/stdpaths.h>
+#include <wx/filename.h>
+#include <wx/datetime.h>
+#include <wx/utils.h>
 
 
 class MainFrame : public wxFrame 
@@ -44,6 +52,9 @@ private:
     int recordingsKeywordCol_ = -1;
     int recordingsCommentsCol_ = -1;
 
+    // path of the loaded recordings CSV (set in OnLoadRecordings)
+    wxString recordingsPath_;
+
     //model/view col index -> CSV col index
     std::vector<int> recordingsModelToCsvCol_;
 
@@ -58,6 +69,9 @@ private:
 
     //states cheat sheet
     void OnShowStatesCheatSheet(wxCommandEvent& event);
+
+    static wxString CsvEscape(const wxString& s);
+    
 
     wxDECLARE_EVENT_TABLE();
 };

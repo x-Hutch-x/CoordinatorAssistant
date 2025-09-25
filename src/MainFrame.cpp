@@ -1,7 +1,6 @@
 ﻿#include "MainFrame.h"
-#include "core/States.h"
-#include <wx/textctrl.h>
-#include "ui/StatesDialog.h"
+ // wxLaunchDefaultApplication
+
 
 
 // ---- Event table maps menu & button IDs -> member functions ---
@@ -174,10 +173,79 @@ void MainFrame::OnLoadVendors(wxCommandEvent& WXUNUSED(event))
     SetStatusText("Loaded vendor list Preview");
 }
 
+wxString MainFrame::CsvEscape(const wxString& s)
+{
+    if (s.Find(',') != wxNOT_FOUND || s.Find('"') != wxNOT_FOUND ||
+        s.Find('\n') != wxNOT_FOUND || s.Find('\r') != wxNOT_FOUND) {
+        wxString out = s;
+        out.Replace("\"", "\"\"");
+        return "\"" + out + "\"";
+    }
+    return s;
+}
+
 void MainFrame::OnExportUpdated(wxCommandEvent& WXUNUSED(event))
 {
-    wxLogMessage("Export Updated File clicked");
-    SetStatusText("Export Updated File clicked");
+    if (recordingsPath_.empty() && recordingRows_.empty()) {
+        wxMessageBox("No recordings loaded yet. Load a recordings file first.",
+            "Nothing to export", wxOK | wxICON_INFORMATION, this);
+        return;
+    }
+
+    wxString base = recordingsPath_.empty()
+        ? "recordings"
+        : wxFileName(recordingsPath_).GetName();
+
+    const wxString ts = wxDateTime::Now().Format("%YMMd%d_%H%M"); // or "%Y%m%d_%H%M"
+    wxString suggested = wxString::Format("%s_updated_%s.csv", base, ts);
+
+#if wxCHECK_VERSION(3,1,6)
+    wxString startDir = wxStandardPaths::Get().GetUserDir(wxStandardPaths::Dir_Downloads);
+    if (startDir.empty()) startDir = wxStandardPaths::Get().GetDocumentsDir();
+#else
+    wxString startDir = wxStandardPaths::Get().GetDocumentsDir();
+#endif
+
+    wxFileDialog dlg(this, "Save Updated Recordings",
+        startDir, suggested,
+        "CSV files (*.csv)|*.csv|All files (*.*)|*.*",
+        wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if (dlg.ShowModal() != wxID_OK) {
+        SetStatusText("Export canceled.");
+        return;
+    }
+
+    const wxString outPath = dlg.GetPath();
+    wxFFile f(outPath, "w");
+    if (!f.IsOpened()) {
+        wxLogError("Couldn't write to \"%s\".", outPath);
+        return;
+    }
+
+    // headers
+    for (size_t i = 0; i < recordingsPath_.size(); ++i) {
+        if (i) f.Write(",");
+        f.Write(CsvEscape(recordingsPath_[i]));
+    }
+    f.Write("\n");
+
+    // rows
+    for (const auto& row : recordingRows_) {
+        for (size_t i = 0; i < row.size(); ++i) {
+            if (i) f.Write(",");
+            f.Write(CsvEscape(row[i]));
+        }
+        f.Write("\n");
+    }
+    f.Close();
+
+    SetStatusText(wxString::Format("Exported updated recordings → %s", outPath));
+
+    if (wxMessageBox("Open the containing folder?",
+        "Export complete",
+        wxYES_NO | wxICON_QUESTION, this) == wxYES) {
+        wxLaunchDefaultApplication(wxFileName(outPath).GetPath());
+    }
 }
 
 void MainFrame::OnUpdateCountdown(wxTimerEvent& WXUNUSED(event))
