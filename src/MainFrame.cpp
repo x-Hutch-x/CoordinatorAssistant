@@ -1,14 +1,22 @@
 ﻿#include "MainFrame.h"
+#include "core/States.h"
+#include <wx/textctrl.h>
+#include "ui/StatesDialog.h"
 
-// ---- Event table maps menu & button IDs -> member functions ----
+
+// ---- Event table maps menu & button IDs -> member functions ---
+
 wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
     EVT_MENU(wxID_EXIT, MainFrame::OnExit)
     EVT_MENU(wxID_ABOUT, MainFrame::OnAbout)
+    EVT_MENU(ID_HELP_STATES, MainFrame::OnShowStatesCheatSheet)
+
     EVT_TIMER(wxID_ANY, MainFrame::OnUpdateCountdown)
 
     EVT_BUTTON(ID_LOAD_RECORDINGS, MainFrame::OnLoadRecordings)
     EVT_BUTTON(ID_LOAD_VENDORS, MainFrame::OnLoadVendors)
     EVT_BUTTON(ID_EXPORT_UPDATED, MainFrame::OnExportUpdated)
+
     EVT_DATAVIEW_ITEM_VALUE_CHANGED(wxID_ANY, MainFrame::OnRecordingsCellChanged)
 wxEND_EVENT_TABLE()
 
@@ -21,6 +29,8 @@ MainFrame::MainFrame(const wxString& title) : wxFrame(nullptr, wxID_ANY, title, 
 
     auto* menuHelp = new wxMenu;
     menuHelp->Append(wxID_ABOUT, "&About\tF1", "About this app");
+    menuHelp->AppendSeparator();
+    menuHelp->Append(ID_HELP_STATES, "State &Abbreviations...\tCtrl+H");
 
     auto* bar = new wxMenuBar;
     bar->Append(menuFile, "&File");
@@ -441,4 +451,54 @@ void MainFrame::OnRecordingsCellChanged(wxDataViewEvent& event)
         }
     }
 
+}
+
+void MainFrame::OnShowStatesCheatSheet(wxCommandEvent& WXUNUSED(event))
+{
+    /*
+    wxDialog dialog(this, wxID_ANY, "State Abbreviations", wxDefaultPosition, wxSize(420, 520), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+
+    auto* vbox = new wxBoxSizer(wxVERTICAL);
+    auto* searchBox = new wxTextCtrl(&dialog, wxID_ANY, "", wxDefaultPosition, wxDefaultSize,
+        wxTE_PROCESS_ENTER); // enter triggers too
+    auto* list = new wxDataViewListCtrl(&dialog, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+        wxDV_ROW_LINES | wxDV_VERT_RULES);
+
+    list->AppendTextColumn("State", wxDATAVIEW_CELL_INERT, 260, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
+    list->AppendTextColumn("Abbr", wxDATAVIEW_CELL_INERT, 80, wxALIGN_CENTER, wxDATAVIEW_COL_RESIZABLE);
+
+    // filter + populate
+    auto populate = [list](const wxString& needle)
+        {
+            list->DeleteAllItems();
+            const wxString lo = needle.Lower();
+
+            for (const auto& e : kStates) {
+                const wxString name = wxString::FromUTF8(e.name);
+                const wxString abbr = wxString::FromUTF8(e.abbr);
+                if (lo.IsEmpty() || name.Lower().Contains(lo) || abbr.Lower().Contains(lo)) {
+                    wxVector<wxVariant> row;
+                    row.push_back(wxVariant(name));
+                    row.push_back(wxVariant(abbr));
+                    list->AppendItem(row);
+                }
+            }
+        };
+
+    populate(""); // initial
+
+    // live filter on typing and Enter
+    searchBox->Bind(wxEVT_TEXT, [populate](wxCommandEvent& ev) { populate(ev.GetString()); });
+    searchBox->Bind(wxEVT_TEXT_ENTER, [populate](wxCommandEvent& ev) { populate(ev.GetString()); });
+
+    vbox->Add(searchBox, 0, wxEXPAND | wxALL, 8);
+    vbox->Add(list, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 8);
+    vbox->Add(dialog.CreateSeparatedButtonSizer(wxOK), 0, wxEXPAND | wxALL, 8);
+    dialog.SetSizerAndFit(vbox);
+
+    dialog.ShowModal();
+    */
+
+    StatesDialog dialog(this);
+    dialog.ShowModal();
 }

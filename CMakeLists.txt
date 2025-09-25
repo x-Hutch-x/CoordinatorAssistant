@@ -12,7 +12,7 @@ add_executable(CoordinatorAssistant WIN32
     src/App.h
     src/MainFrame.cpp
     src/MainFrame.h
- "src/core/Helpers.cpp" "src/core/Helpers.h"  "src/core/Defaults.h" "src/core/Defaults.cpp")
+ "src/core/Helpers.cpp" "src/core/Helpers.h"  "src/core/Defaults.h" "src/core/Defaults.cpp" "src/ui/StatesDialog.cpp" "src/ui/StatesDialog.h")
 
 target_link_libraries(CoordinatorAssistant PRIVATE wx::core wx::base)
 target_include_directories(CoordinatorAssistant PRIVATE src)

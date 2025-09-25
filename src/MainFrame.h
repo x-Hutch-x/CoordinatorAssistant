@@ -6,6 +6,7 @@
 #include "core/Helpers.h"
 #include "core/Defaults.h"
 
+
 class MainFrame : public wxFrame 
 {
 public:
@@ -54,6 +55,9 @@ private:
 
     // React to cell edits (auto-fill comments, write back to recordingsRows_)
     void OnRecordingsCellChanged(wxDataViewEvent& event);
+
+    //states cheat sheet
+    void OnShowStatesCheatSheet(wxCommandEvent& event);
 
     wxDECLARE_EVENT_TABLE();
 };
